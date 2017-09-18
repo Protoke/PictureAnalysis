@@ -32,5 +32,4 @@
 *.app
 
 # CLion
-CMakeLists.txt
 cmake-build-debug
