@@ -37,9 +37,9 @@ int main() {
     // exit
     window.close();
 
-    cv::Mat img = imread("../data/Lenna.png");
+    cv::Mat img2 = imread("../data/Lenna.png");
     Filter f(cv::Mat::ones(cv::Size(3, 3), CV_32F));
-    Mat result = f.apply(img);
+    Mat result = f.apply(img2);
 
     imshow("Result", result);
     waitKey(0);
