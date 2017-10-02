@@ -16,7 +16,7 @@ public:
     Filter();
     Filter(const Mat& kernel);
 
-    Mat& apply(const Mat& img);
+    Mat apply(const Mat& img);
 
     static Mat horizontalGradient(int sizeX = 3, int sizeY = 3);
     static Mat verticalGradient(int sizeX = 3, int sizeY = 3);

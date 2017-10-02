@@ -12,22 +12,42 @@ Filter::Filter(const Mat& kernel) {
     kernel.copyTo(kernel_);
 }
 
-Mat& Filter::apply(const Mat& img) {
-    Mat result(img.rows, img.cols, CV_32F);
+Mat Filter::apply(const Mat& img) {
+    int XRadius = (kernel_.rows-1)/2;
+    int YRadius = (kernel_.cols-1)/2;
+    Mat result = Mat::zeros(img.rows, img.cols, CV_32FC3);
+    Mat largeImg = Mat(img.rows + XRadius*2, img.cols + YRadius*2, img.type());
 
-    for (int i = 0; i < img.rows; ++i) {
-        for (int j = 0; j < img.cols; ++j) {
+    // Insert the image into a bigger one to take care of border's ROI's problems
+    cv::Range ranges[2];
+    ranges[0] = cv::Range(XRadius, largeImg.rows - XRadius);
+    ranges[1] = cv::Range(YRadius, largeImg.cols - YRadius);
+    img.copyTo(largeImg(ranges));
 
-            int decalX = (kernel_.rows-1)/2;
-            int decalY = (kernel_.cols-1)/2;
+    // Convolve
+    for (int i = 0; i < result.rows; ++i) {
+        for (int j = 0; j < result.cols; ++j) {
+            // Extract the patch for the convolution
+            Point p1 = Point(i, j);
+            Point p2 = Point(i + XRadius*2, j + YRadius*2);
+//            std::cout << p1 << " ; " << p2 << std::endl;
+            Rect rectRoi = Rect(p1, p2);
+            Mat roi = largeImg(rectRoi);
 
-            Rect rectRoi = Rect(Point(i - decalX, i - decalY), Point(i + decalX + 1, i + decalY + 1));
-            Mat roi = img(rectRoi);
-
-            std::cout << "debug" << std::endl;
+            for(int k = 0; k < kernel_.rows; ++k){
+                for (int l = 0; l < kernel_.cols; ++l) {
+                    for (int m = 0; m < kernel_.channels(); ++m) {
+                        result.at<CV_32F>(k, l, m) += (float)roi.at<uchar>(k, l, m) * (float)kernel_.at<uchar>(k, l, m);
+                    }
+                }
+            }
         }
     }
 
+    imshow("resultTemp", result);
+    waitKey(0);
+
+    return result;
 }
 
 Mat Filter::horizontalGradient(int sizeX, int sizeY) {
