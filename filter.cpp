@@ -37,7 +37,7 @@ Mat Filter::apply(const Mat& img) {
             for(int k = 0; k < kernel_.rows; ++k){
                 for (int l = 0; l < kernel_.cols; ++l) {
                     for (int m = 0; m < kernel_.channels(); ++m) {
-                        result.at<CV_32F>(k, l, m) += (float)roi.at<uchar>(k, l, m) * (float)kernel_.at<uchar>(k, l, m);
+                        result.at<uchar>(k, l, m) += (float)roi.at<uchar>(k, l, m) * (float)kernel_.at<uchar>(k, l, m);
                     }
                 }
             }
