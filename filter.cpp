@@ -56,7 +56,7 @@ Mat Filter::apply(const Mat& img) {
 }
 
 Mat Filter::horizontalGradient(int sizeX, int sizeY, type t) {
-    // sizeX and sizeY must be impair
+    // sizeX and sizeY must be even
     assert(sizeX%2 == 1 && sizeY%2 == 1);
 
     Mat_<int> mat;
