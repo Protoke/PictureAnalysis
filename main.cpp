@@ -10,6 +10,10 @@ using namespace cv;
 
 int main() {
 
+    Filter fi;
+    //fi.horizontalGradient(3,3, PREWITT);
+    fi.verticalGradient(3,3, SOBEL);
+
     Window window("Picture Analysis", 800, 600);
 
     // load the original picture in cv mat
