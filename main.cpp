@@ -42,12 +42,24 @@ int main() {
     window.close();
 
     cv::Mat img2 = imread("../data/Lenna.png");
+    cvtColor(img2, img2, cv::COLOR_RGB2GRAY);
+
     Mat filt = Mat(3, 3, CV_32F, Scalar(0.0));
+//    filt.at<float>(0,0) = 1.0/9.0; filt.at<float>(0,0) = 1.0/9.0; filt.at<float>(0,0) = 1.0/9.0;
+//    filt.at<float>(1,0) = 1.0/9.0; filt.at<float>(0,0) = 1.0/9.0; filt.at<float>(0,0) = 1.0/9.0;
+//    filt.at<float>(2,0) = 1.0/9.0; filt.at<float>(0,0) = 1.0/9.0; filt.at<float>(0,0) = 1.0/9.0;
     filt.at<float>(1,1) = 1.0;
+
     Filter f(filt);
     Mat result = f.apply(img2);
+    Mat resultConverted;
+    result.convertTo(resultConverted, CV_8U);
+    imshow("Result1", resultConverted);
+    waitKey(0);
 
-    imshow("Result", result);
+    Mat result2;
+    filter2D(img2, result2, -1 , filt);
+    imshow("Result2", result2);
     waitKey(0);
 
     return EXIT_SUCCESS;

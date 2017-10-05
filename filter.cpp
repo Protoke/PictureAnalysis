@@ -18,7 +18,7 @@ Mat Filter::apply(const Mat& img) {
 
     int XRadius = (kernel_.rows-1)/2;
     int YRadius = (kernel_.cols-1)/2;
-    Mat result = Mat(img.rows, img.cols, (img.channels() == 3)?CV_32FC3:CV_32F, (img.channels() == 3)?Scalar(0, 0, 0) : Scalar(0.0));
+    Mat result = Mat(img.rows, img.cols, (img.channels() == 3)?CV_32FC3:CV_32F, (img.channels() == 3)?Scalar(0, 0, 0) : Scalar(0));
     Mat largeImg = Mat(img.rows + XRadius*2, img.cols + YRadius*2, img.type());
 
     // Insert the image into a bigger one to take care of border's ROI's problems
@@ -35,24 +35,23 @@ Mat Filter::apply(const Mat& img) {
             Point p2 = Point(i + XRadius*2, j + YRadius*2);
             Rect rectRoi = Rect(p1, p2);
             Mat roi = largeImg(rectRoi);
-            Mat roiConverted;
-            roi.convertTo(roiConverted, (img.channels() == 3)?CV_32FC3:CV_32F);
 
             for(int k = 0; k < kernel_.rows; ++k){
                 for (int l = 0; l < kernel_.cols; ++l) {
-                    if(img.channels() == 3)
-                        result.at<Vec3f>(j, i) += roiConverted.at<Vec3f>(k, l) * kernel_.at<float>(k, l);
+                    if(img.channels() == 3){
+                        Vec3f colorf = Vec3f(
+                                (float)roi.at<Vec3b>(k, l)[0],
+                                (float)roi.at<Vec3b>(k, l)[1],
+                                (float)roi.at<Vec3b>(k, l)[2]);
+                        result.at<Vec3f>(j, i) += colorf * kernel_.at<float>(k, l);
+                    }
                     else
-                        result.at<float>(j, i) += roi.at<float>(k, l) * kernel_.at<float>(k, l);
+                        result.at<float>(j, i) += (float)roi.at<u_int8_t>(k, l) * kernel_.at<float>(k, l);
                 }
             }
         }
     }
-
-    Mat resultConverted;
-    result.convertTo(resultConverted, (img.channels() == 3)?CV_8UC3:CV_8U);
-
-    return resultConverted;
+    return result;
 }
 
 Mat Filter::horizontalGradient(int sizeX, int sizeY, type t) {
