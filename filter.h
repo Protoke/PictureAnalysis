@@ -13,6 +13,7 @@ enum type {PREWITT, SOBEL, KIRSCH};
 
 class Filter {
     Mat kernel_;
+    float absSum;
 
 public:
     Filter();
@@ -24,5 +25,6 @@ public:
     static Mat verticalGradient(int sizeX = 3, int sizeY = 3, type t = PREWITT);
 };
 
+Mat extendPicture(const Mat& src, int padding);
 
 #endif //PICTUREANALYSIS_FILTER_H
