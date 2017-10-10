@@ -107,3 +107,5 @@ Mat extendPicture(const Mat& src, int padding){
 
     return dst;
 }
+
+// merge
