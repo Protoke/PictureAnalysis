@@ -9,20 +9,16 @@
 
 using namespace cv;
 
-enum type {PREWITT, SOBEL, KIRSCH};
-
 class Filter {
     Mat kernel_;
     float absSum;
 
 public:
+
     Filter();
     Filter(const Mat& kernel);
 
     Mat apply(const Mat& img);
-
-    static Mat horizontalGradient(int sizeX = 3, int sizeY = 3, type t = PREWITT);
-    static Mat verticalGradient(int sizeX = 3, int sizeY = 3, type t = PREWITT);
 };
 
 Mat extendPicture(const Mat& src, int padding);

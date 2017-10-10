@@ -1,47 +1,24 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
-#include <SDL2/SDL.h>
 
-#include "window.h"
 #include "filter.h"
 #include "threshold.h"
+#include "gradient.h"
 
 using namespace cv;
 
 
 int main() {
 
-    /*Filter fi;
-    //fi.horizontalGradient(3,3, PREWITT);
-    fi.verticalGradient(3,3, SOBEL);
-
-    Window window("Picture Analysis", 800, 600);
-
     // load the original picture in cv mat
-    Mat img;
-    img = imread("../data/horizontal.png", CV_LOAD_IMAGE_COLOR);
-
-    if(! img.data) {
+    Mat image;
+    image = imread("../data/image_simple_test.png", CV_LOAD_IMAGE_COLOR);
+    if(! image.data) {
         std::cout << "Error loading picture" << std::endl;
         return -1;
     }
 
-    // load the cv mat in the window
-    window.fill_texture_from_CVmat(img);
-
-    // main loop
-    while(window.events()) {
-        // key events
-        if(window.key_state(SDLK_ESCAPE))
-            break;
-
-        // display
-        window.render();
-    }
-
-    // exit
-    window.close(); */
-
+    Gradient gradient(image);
 
     cv::Mat img2 = imread("../data/Lenna.png", CV_LOAD_IMAGE_COLOR);
 //    cv::Mat img2 = imread("../data/image_simple.test.png", CV_LOAD_IMAGE_COLOR);
@@ -64,7 +41,7 @@ int main() {
 
 //    filt.at<float>(1,1) = 1.0;
 
-    filt = Filter::horizontalGradient();
+    filt = Gradient::horizontalTopGradient();
 
     Filter f(filt);
     Mat result = f.apply(img2);
@@ -89,5 +66,7 @@ int main() {
     imshow("Hyseteris", resH);
 
     waitKey(0);
+
+
     return EXIT_SUCCESS;
 }
