@@ -129,7 +129,7 @@ Mat Filter::verticalGradient(int sizeX, int sizeY, type t) {
     return mat;
 }
 
-Mat extendPicture(const Mat& src, int padding){
+Mat extendPicture(const Mat& src, int padding){ // merge
     assert(src.channels() == 3 || src.channels() == 1);
 
     Mat dst = Mat(src.rows + padding*2 + 1, src.cols + padding*2 + 1, src.type(), Scalar::all(0.0));
