@@ -1,9 +1,10 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <SDL2/SDL.h>
-#include "window.h"
 
+#include "window.h"
 #include "filter.h"
+#include "threshold.h"
 
 using namespace cv;
 
@@ -43,7 +44,8 @@ int main() {
 
 
     cv::Mat img2 = imread("../data/Lenna.png", CV_LOAD_IMAGE_COLOR);
-//    cvtColor(img2, img2, cv::COLOR_RGB2GRAY);
+//    cv::Mat img2 = imread("../data/image_simple.test.png", CV_LOAD_IMAGE_COLOR);
+    cvtColor(img2, img2, cv::COLOR_RGB2GRAY);
 
     imshow("Source", img2);
 
@@ -67,17 +69,24 @@ int main() {
     Filter f(filt);
     Mat result = f.apply(img2);
     result.convertTo(result, CV_8UC3);
-    imshow("Moi", abs(result));
+    imshow("Filtre : Moi", abs(result));
 //    Mat channels[3];
 //    split(result, channels);
 //    imshow("R", abs(channels[0]));
 //    imshow("G", abs(channels[1]));
 //    imshow("B", abs(channels[2]));
 
-    Mat result2;
-    filter2D(img2, result2, (img2.channels() == 3)?CV_32FC3:CV_32F , filt);
-    result2.convertTo(result2, CV_8UC3);
-    imshow("Opencv", abs(result2));
+//    Mat result2;
+//    filter2D(img2, result2, (img2.channels() == 3)?CV_32FC3:CV_32F , filt);
+//    result2.convertTo(result2, CV_8UC3);
+//    imshow("Opencv", abs(result2));
+
+    Mat resG = globalThreshold(result);
+    imshow("Global", resG);
+    Mat resL = localThreshold(result, 9);
+    imshow("Local", resL);
+    Mat resH = hysteresisThreshold(result, 80, 80*0.8, 7);
+    imshow("Hyseteris", resH);
 
     waitKey(0);
     return EXIT_SUCCESS;

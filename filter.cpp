@@ -146,8 +146,6 @@ Mat extendPicture(const Mat& src, int padding){
         dst(ranges[0], Range(j, j+1)) += src(Range::all(), Range(0, 1));
     }
     for (int j = ranges[1].end; j < dst.cols; ++j) {
-        Mat a = dst(ranges[0], Range(j, j+1));
-        Mat b = src(Range::all(), Range(src.cols, src.cols));
         dst(ranges[0], Range(j, j+1)) += src(Range::all(), Range(src.cols-1, src.cols));
     }
 

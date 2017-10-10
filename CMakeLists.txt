@@ -3,7 +3,7 @@ project(PictureAnalysis)
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(SOURCE_FILES main.cpp window.cpp window.h filter.cpp)
+set(SOURCE_FILES main.cpp window.cpp window.h filter.cpp threshold.cpp)
 add_executable(PictureAnalysis ${SOURCE_FILES})
 
 # include opencv
