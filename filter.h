@@ -11,6 +11,7 @@ using namespace cv;
 
 class Filter {
     Mat kernel_;
+    float absSum;
 
 public:
 
@@ -20,5 +21,6 @@ public:
     Mat apply(const Mat& img);
 };
 
+Mat extendPicture(const Mat& src, int padding);
 
 #endif //PICTUREANALYSIS_FILTER_H

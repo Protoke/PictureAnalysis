@@ -3,7 +3,7 @@ project(PictureAnalysis)
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(SOURCE_FILES main.cpp filter.cpp gradient.cpp gradient.h)
+set(SOURCE_FILES main.cpp filter.cpp gradient.cpp gradient.h threshold.cpp)
 add_executable(PictureAnalysis ${SOURCE_FILES})
 
 # include opencv
