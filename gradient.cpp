@@ -13,7 +13,6 @@ Gradient::Gradient(const Mat& img, int size, type t, int flags) {
     _magnitude = Mat::zeros(_rows, _cols, CV_32F);
     _orientation = Mat::zeros(_rows, _cols, CV_32F);
     _orientation_map = Mat::zeros(_orientation.size(), CV_8UC3);
-    _orientation_lines = Mat::zeros(_rows,_cols,CV_8UC1);
 
     // convert rgb to gray and type CV_8UC1
     Mat image;
@@ -62,8 +61,6 @@ Gradient::Gradient(const Mat& img, int size, type t, int flags) {
     orientation();
 
     orientation_map();
-
-    orientation_lines();
 }
 
 void Gradient::magnitude() {
@@ -119,50 +116,37 @@ void Gradient::orientation() {
 
 
 
-void Gradient::orientation_map(double thresh){
-    Vec3b red(0, 0, 255);
-    Vec3b cyan(255, 255, 0);
-    Vec3b green(0, 255, 0);
-    Vec3b yellow(0, 255, 255);
-    for(int i = 0; i < _rows*_cols; i++)
-    {
-        float* magPixel = reinterpret_cast<float*>(_magnitude.data + i*sizeof(float));
-        if(*magPixel > thresh)
-        {
-            float* oriPixel = reinterpret_cast<float*>(_orientation.data + i*sizeof(float));
-            Vec3b* mapPixel = reinterpret_cast<Vec3b*>(_orientation_map.data + i*3*sizeof(char));
-            if(*oriPixel < 90.0)
-                *mapPixel = red;
-            else if(*oriPixel >= 90.0 && *oriPixel < 180.0)
-                *mapPixel = cyan;
-            else if(*oriPixel >= 180.0 && *oriPixel < 270.0)
-                *mapPixel = green;
-            else if(*oriPixel >= 270.0 && *oriPixel < 360.0)
-                *mapPixel = yellow;
+void Gradient::orientation_map(){
+    for (int i = 0; i < _orientation_map.rows; ++i) {
+        for (int j = 0; j < _orientation_map.cols; ++j) {
+            if(_magnitude.at<float>(i,j) > 0)
+                _orientation_map.at<Vec3b>(i,j) = Vec3b(cos(_orientation.at<float>(i,j)*M_PI/255.0) * 255,
+                                                    sin(_orientation.at<float>(i,j)*M_PI/255.0) * 255,
+                                                    0);
         }
     }
 }
 
-void Gradient::orientation_lines(unsigned int thresh) {
-    int blockSize = _cols/thresh-1;
-    float r = blockSize;
+void Gradient::refineContour(int range) {
+//    Range ranges[2];
+//    for (int i = 0; i < _magnitude.rows; ++i) {
+//        for (int j = 0; j < _magnitude.cols; ++j) {
+//
+//        }
+//    }
 
-    for(int i = 0;i < _rows-blockSize;i += blockSize) {
-        for(int j = 0 ;j < _cols-blockSize;j += blockSize) {
-            Mat m = _magnitude(Rect(j,i,blockSize,blockSize));
-            Mat o = _orientation(Rect(j,i,blockSize,blockSize));
-            float angle = getWeightedAngle(m,o);
+    // Copie de _magnitude dans resultat
 
-            if(angle != -1) {
-                float dx = r*cos(angle);
-                float dy = r*sin(angle);
-                int x = j;
-                int y = i;
+    // tant que modification = vrai
+        // Copie de resultat dans magnitudeBis
+        // pour i = 0:rows
+            // pour j = 0:cols
+                // Si (_magnitude(i,j) > 0) et si
+                //    dans la direction du gradient, sur une distance range (dans les deux sens) il y a un point de magnitude supérieure
+                    // resultat(i,j) = 0
+                    // modification = vrai
+    // retourne resultat
 
-                cv::line(_orientation_lines,cv::Point(x,y),cv::Point(x+dx,y+dy),Scalar::all(255),1,CV_AA);
-            }
-        }
-    }
 }
 
 float Gradient::getWeightedAngle(Mat& mag, Mat& ori)

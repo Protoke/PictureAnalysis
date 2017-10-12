@@ -37,7 +37,6 @@ int main() {
     imshow("Magnitude", mat2gray(gradient._magnitude));
     imshow("Orientation", mat2gray(gradient._orientation));
     imshow("Orientation Map", gradient._orientation_map);
-    imshow("Orientation Lines", gradient._orientation_lines);
 
 //    cv::Mat img2 = imread("../data/Lenna.png", CV_LOAD_IMAGE_COLOR);
 //    cv::Mat img2 = imread("../data/image_simple.test.png", CV_LOAD_IMAGE_COLOR);
