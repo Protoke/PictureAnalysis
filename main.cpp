@@ -4,9 +4,15 @@
 #include "filter.h"
 #include "threshold.h"
 #include "gradient.h"
+#include <string.h>
 
 using namespace cv;
 
+Mat mat2gray(const cv::Mat& src){
+    Mat dst;
+    normalize(src, dst, 0.0, 255.0, cv::NORM_MINMAX, CV_8U);
+    return dst;
+}
 
 int main() {
 
@@ -18,15 +24,28 @@ int main() {
         return -1;
     }
 
+    // calcul gradients, magnitude, orientation de l'image
     Gradient gradient(image);
 
-    cv::Mat img2 = imread("../data/Lenna.png", CV_LOAD_IMAGE_COLOR);
+    // affichage des gradients
+    for(unsigned int i = 0;i < gradient._gradients.size();i++) {
+        std::string title = "G" + std::to_string(i);
+        imshow(title, mat2gray(gradient._gradients[i]));
+    }
+
+    // affichage magnitude et orientation
+    imshow("Magnitude", mat2gray(gradient._magnitude));
+    imshow("Orientation", mat2gray(gradient._orientation));
+    imshow("Orientation Map", gradient._orientation_map);
+    imshow("Orientation Lines", gradient._orientation_lines);
+
+//    cv::Mat img2 = imread("../data/Lenna.png", CV_LOAD_IMAGE_COLOR);
 //    cv::Mat img2 = imread("../data/image_simple.test.png", CV_LOAD_IMAGE_COLOR);
-    cvtColor(img2, img2, cv::COLOR_RGB2GRAY);
+//    cvtColor(img2, img2, cv::COLOR_RGB2GRAY);
 
-    imshow("Source", img2);
+//    imshow("Source", img2);
 
-    Mat filt = Mat(3, 3, CV_32F, Scalar(0.0));
+//    Mat filt = Mat(3, 3, CV_32F, Scalar(0.0));
 //    filt.at<float>(0,0) = 1.0/9.0; filt.at<float>(0,1) = 1.0/9.0; filt.at<float>(0,2) = 1.0/9.0;
 //    filt.at<float>(1,0) = 1.0/9.0; filt.at<float>(1,1) = 1.0/9.0; filt.at<float>(1,2) = 1.0/9.0;
 //    filt.at<float>(2,0) = 1.0/9.0; filt.at<float>(2,1) = 1.0/9.0; filt.at<float>(2,2) = 1.0/9.0;
@@ -41,12 +60,12 @@ int main() {
 
 //    filt.at<float>(1,1) = 1.0;
 
-    filt = Gradient::horizontalTopGradient();
+    /*filt = Gradient::horizontalTopGradient();
 
     Filter f(filt);
     Mat result = f.apply(img2);
     result.convertTo(result, CV_8UC3);
-    imshow("Filtre : Moi", abs(result));
+    imshow("Filtre : Moi", abs(result));*/
 //    Mat channels[3];
 //    split(result, channels);
 //    imshow("R", abs(channels[0]));
@@ -58,12 +77,12 @@ int main() {
 //    result2.convertTo(result2, CV_8UC3);
 //    imshow("Opencv", abs(result2));
 
-    Mat resG = globalThreshold(result);
+    /*Mat resG = globalThreshold(result);
     imshow("Global", resG);
     Mat resL = localThreshold(result, 9);
     imshow("Local", resL);
     Mat resH = hysteresisThreshold(result, 80, 80*0.8, 7);
-    imshow("Hyseteris", resH);
+    imshow("Hyseteris", resH);*/
 
     waitKey(0);
 

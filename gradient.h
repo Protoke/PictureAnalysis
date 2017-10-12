@@ -14,25 +14,47 @@ enum type {PREWITT, SOBEL, KIRSCH};
 
 class Gradient {
 
+private:
+    unsigned int _rows;
+    unsigned int _cols;
+
 public :
-    Gradient(const Mat& image);
+    enum flags {
+        N   =   0x01,
+        NE  =   0x02,
+        E   =   0x04,
+        SE  =   0x08,
+        S   =   0x10,
+        SW  =   0x20,
+        W   =   0x40,
+        NW  =   0x80
+    };
+    std::vector<Mat> _gradients;
+    Mat _magnitude;
+    Mat _orientation;
+    Mat _orientation_map;
+    Mat _orientation_lines;
 
-    static float GetWeightedAngle(Mat& mag, Mat& ang);
-    static Mat mat2gray(const cv::Mat& src);
-    static Mat orientationMap(const cv::Mat& mag, const cv::Mat& ori, double thresh = 1.0);
 
-    static Mat horizontalTopGradient(int size = 3, type t = PREWITT);
-    static Mat verticalLeftGradient(int size = 3, type t = PREWITT);
-    static Mat horizontalBottomGradient(int size = 3, type t = PREWITT);
-    static Mat verticalRightGradient(int size = 3, type t = PREWITT);
-    static Mat diagonalTopLeftGradient(int size = 3, type t = PREWITT);
-    static Mat diagonalTopRightGradient(int size = 3, type t = PREWITT);
-    static Mat diagonalBottomLeftGradient(int size = 3, type t = PREWITT);
-    static Mat diagonalBottomRightGradient(int size = 3, type t = PREWITT);
-    static std::array<Mat, 8> boussoleGradient(int size = 3, type t = PREWITT);
+    Gradient(const Mat& img, bool display);
+    Gradient(const Mat& img, int size = 3, type t = PREWITT, int flags = S | E);
 
-private :
-    // TODO : stocker l'orientation etc dans des champs
+    void magnitude();
+    void orientation();
+    void orientation_map(double thresh = 1.0);
+    void orientation_lines(unsigned int thresh = 50);
+
+    float getWeightedAngle(Mat& mag, Mat& ori);
+
+    Mat horizontalTopGradient(int size = 3, type t = PREWITT);
+    Mat verticalLeftGradient(int size = 3, type t = PREWITT);
+    Mat horizontalBottomGradient(int size = 3, type t = PREWITT);
+    Mat verticalRightGradient(int size = 3, type t = PREWITT);
+    Mat diagonalTopLeftGradient(int size = 3, type t = PREWITT);
+    Mat diagonalTopRightGradient(int size = 3, type t = PREWITT);
+    Mat diagonalBottomLeftGradient(int size = 3, type t = PREWITT);
+    Mat diagonalBottomRightGradient(int size = 3, type t = PREWITT);
+    std::array<Mat, 8> boussoleGradient(int size = 3, type t = PREWITT);
 
 };
 
