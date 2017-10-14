@@ -10,8 +10,6 @@
 
 using namespace cv;
 
-enum type {PREWITT, SOBEL, KIRSCH};
-
 class Gradient {
 
 private:
@@ -19,6 +17,11 @@ private:
     unsigned int _cols;
     std::vector<float> _directions;
     Mat _gradients_max;
+
+    void magnitude();
+    void orientation();
+    void orientation_map();
+    void refineContour(int range);
 
 public :
     enum flags {
@@ -31,20 +34,20 @@ public :
         W   =   0x40,
         NW  =   0x80
     };
+    enum type {
+        PREWITT,
+        SOBEL,
+        KIRSCH
+    };
+
     std::vector<Mat> _gradients;
     Mat _magnitude;
     Mat _orientation;
     Mat _orientation_map;
-    Mat _orientation_lines;
 
 
     Gradient(const Mat& img, bool display);
     Gradient(const Mat& img, int size = 3, type t = PREWITT, int flags = S | E);
-
-    void magnitude();
-    void orientation();
-    void orientation_map(double thresh = 1.0);
-    void orientation_lines(unsigned int thresh = 50);
 
     float getWeightedAngle(Mat& mag, Mat& ori);
 
