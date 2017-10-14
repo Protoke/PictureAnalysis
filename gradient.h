@@ -17,6 +17,8 @@ class Gradient {
 private:
     unsigned int _rows;
     unsigned int _cols;
+    std::vector<float> _directions;
+    Mat _gradients_max;
 
 public :
     enum flags {
