@@ -26,13 +26,13 @@ int main() {
     }
 
     // calcul gradients, magnitude, orientation de l'image
-    Gradient gradient(image);
+    Gradient gradient(image, 3, PREWITT, Gradient::E | Gradient::NW | Gradient::SE );
 
     // affichage des gradients
-//    for(unsigned int i = 0;i < gradient._gradients.size();i++) {
-//        std::string title = "G" + std::to_string(i);
-//        imshow(title, mat2gray(gradient._gradients[i]));
-//    }
+    for(unsigned int i = 0;i < gradient._gradients.size();i++) {
+        std::string title = "G" + std::to_string(i);
+        imshow(title, gradient._gradients[i]);
+    }
 
     // affichage magnitude et orientation
     imshow("Magnitude", mat2gray(gradient._magnitude));

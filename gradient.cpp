@@ -13,6 +13,7 @@ Gradient::Gradient(const Mat& img, int size, type t, int flags) {
     _magnitude = Mat::zeros(_rows, _cols, CV_32F);
     _orientation = Mat::zeros(_rows, _cols, CV_32F);
     _orientation_map = Mat::zeros(_orientation.size(), CV_8UC3);
+    _gradients_max = Mat::zeros(_rows, _cols, CV_32F);
 
     // convert rgb to gray and type CV_8UC1
     Mat image;
@@ -26,34 +27,42 @@ Gradient::Gradient(const Mat& img, int size, type t, int flags) {
     if(flags & N) {
         filter = Filter( gradients[4] );
         _gradients.emplace_back(filter.apply(image));
+        _directions.emplace_back(270.0);
     }
     if(flags & NE) {
         filter = Filter( gradients[7] );
         _gradients.emplace_back(filter.apply(image));
+        _directions.emplace_back(315.0);
     }
     if(flags & E) {
         filter = Filter( gradients[1] );
         _gradients.emplace_back(filter.apply(image));
+        _directions.emplace_back(0.0);
     }
     if(flags & SE) {
         filter = Filter( gradients[3] );
         _gradients.emplace_back(filter.apply(image));
+        _directions.emplace_back(45.0);
     }
     if(flags & S) {
         filter = Filter( gradients[0] );
         _gradients.emplace_back(filter.apply(image));
+        _directions.emplace_back(90.0);
     }
     if(flags & SW) {
         filter = Filter( gradients[2] );
         _gradients.emplace_back(filter.apply(image));
+        _directions.emplace_back(135.0);
     }
     if(flags & W) {
         filter = Filter( gradients[5] );
         _gradients.emplace_back(filter.apply(image));
+        _directions.emplace_back(180.0);
     }
     if(flags & NW) {
         filter = Filter( gradients[6] );
         _gradients.emplace_back(filter.apply(image));
+        _directions.emplace_back(225.0);
     }
 
     magnitude();
@@ -72,13 +81,13 @@ void Gradient::magnitude() {
         multiply(_gradients[1], _gradients[1], m1_2);
         add(m0_2, m1_2, _magnitude);
         sqrt(_magnitude, _magnitude);
-    }else if(_gradients.size() > 2){
-        // CAS MULTIDIRECTIONNEL
+    }else{
+        // CAS MULTIDIRECTIONNEL OU UNIDIRECTIONNEL
         _magnitude = Mat::zeros(_rows, _cols, CV_32F);
         for(unsigned int i = 0;i < _rows;i++) {
             for(unsigned int j = 0;j < _cols;j++) {
                 // gradient max = magnitude
-                unsigned int id_gradient_max = 0;
+                int id_gradient_max = 0;
                 float max = _gradients[0].at<float>(i,j);
                 for(unsigned int k = 1;k < _gradients.size();k++) {
                     if(_gradients[k].at<float>(i,j) > max) {
@@ -87,7 +96,9 @@ void Gradient::magnitude() {
                     }
 
                 }
+                // on sauvegarde le gradient max et l'id du filtre auquel il correspond
                 _magnitude.at<float>(i,j) = _gradients[id_gradient_max].at<float>(i,j);
+                _gradients_max.at<int>(i,j) = id_gradient_max;
             }
         }
     }
@@ -96,18 +107,18 @@ void Gradient::magnitude() {
 void Gradient::orientation() {
     if(_gradients.size() == 2) {
         // CAS BIDIRECTIONNEL
-        _orientation = Mat::zeros(_rows, _cols, CV_32F);
         for(unsigned int i = 0;i < _rows;i++) {
             for(unsigned int j = 0;j < _cols;j++) {
                 _orientation.at<float>(i,j) = fastAtan2(_gradients[1].at<float>(i,j), _gradients[0].at<float>(i,j)) * 180/M_PI; // angle in degrees
             }
         }
-    }else if(_gradients.size() > 2) {
-        // CAS MULTIDIRECTIONNEL
-        _orientation = Mat::zeros(_rows, _cols, CV_32F);
+    }else {
+        // CAS MULTIDIRECTIONNEL OU UNIDIRECTIONNEL
         for(unsigned int i = 0;i < _rows;i++) {
             for(unsigned int j = 0;j < _cols;j++) {
-                //_orientation.at<float>(i,j) = () * 180/M_PI; // angle in degrees
+                // on recupere la direction du gradient max trouve
+                int id_gradient_max = _gradients_max.at<int>(i,j);
+                _orientation.at<float>(i,j) = (float)_directions[id_gradient_max];
             }
         }
     }
