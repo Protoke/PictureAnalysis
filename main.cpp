@@ -15,8 +15,8 @@ Mat mat2gray(const Mat& src){
     return dst;
 }
 
-std::vector<std::list> chaining(const Mat& affine, const Mat& orientation) {
-    std::vector<std::list> chains;
+std::vector< std::list<Point2i> > chaining(const Mat& affine, const Mat& orientation) {
+    std::vector<std::list<Point2i> > chains;
 
     return chains;
 
