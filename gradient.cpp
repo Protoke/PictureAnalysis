@@ -153,7 +153,7 @@ void refineContour(const Mat& magnitude, const Mat& orientation, const Mat& cont
 
             // Calcul du vecteur direction du gradient
             Vec2f dir;
-            Mat m = rotation * Mat(Vec2f(1,1), false);
+            Mat m = rotation * Mat(Vec2f(1,0), false);
             m.copyTo(cv::Mat(dir, false));
             normalize(dir, dir, 1.0, 0.0, NORM_L1);
 
@@ -162,8 +162,8 @@ void refineContour(const Mat& magnitude, const Mat& orientation, const Mat& cont
             Point2f pPosCur = Vec2f(i, j) + dir * posCur;
             Point2f pNegCur = Vec2f(i, j) + dir * negCur;
 
-            if(orientation.at<float>(i,j) >= 359)
-                std::cout << orientation.at<float>(i,j) << " " << theta << " " << dir << " POINT (" << i << ";" << j << ") : " << magnitude.at<float>(i, j) << std::endl;
+//            if(orientation.at<float>(i,j) >= 359)
+//                std::cout << orientation.at<float>(i,j) << " " << theta << " " << dir << " POINT (" << i << ";" << j << ") : " << magnitude.at<float>(i, j) << std::endl;
 
             while(result.at<uchar>(i,j) != 0 &&
                     (

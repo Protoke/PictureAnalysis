@@ -18,26 +18,27 @@ int main() {
 
     // load the original picture in cv mat
     Mat image;
-    image = imread("../data/Lenna.png", CV_LOAD_IMAGE_COLOR);
-//    image = imread("../data/image_simple_test.png", CV_LOAD_IMAGE_COLOR);
+//    image = imread("../data/Lenna.png", CV_LOAD_IMAGE_COLOR);
+    image = imread("../data/image_simple_test.png", CV_LOAD_IMAGE_COLOR);
     if(! image.data) {
         std::cout << "Error loading picture" << std::endl;
         return -1;
     }
+    imshow("Source", image);
 
     // calcul gradients, magnitude, orientation de l'image
-    Gradient gradient(image, 3, PREWITT, Gradient::E | Gradient::NW | Gradient::SE );
+    Gradient gradient(image, 3, Gradient::PREWITT, Gradient::E | Gradient::N);
 
     // affichage des gradients
-    for(unsigned int i = 0;i < gradient._gradients.size();i++) {
-        std::string title = "G" + std::to_string(i);
-        imshow(title, gradient._gradients[i]);
-    }
+//    for(unsigned int i = 0;i < gradient._gradients.size();i++) {
+//        std::string title = "G" + std::to_string(i);
+//        imshow(title, gradient._gradients[i]);
+//    }
 
     // affichage magnitude et orientation
     imshow("Magnitude", mat2gray(gradient._magnitude));
     imshow("Orientation", mat2gray(gradient._orientation));
-    imshow("Orientation Map", gradient._orientation_map);
+//    imshow("Orientation Map", gradient._orientation_map);
     Mat seuil = hysteresisThreshold(gradient._magnitude, 50, 25, 3);
     imshow("Seuillée", seuil);
     Mat affine;
