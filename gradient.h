@@ -19,7 +19,6 @@ private:
     void magnitude();
     void orientation();
     void orientation_map();
-    void refineContour(int range);
 
 public :
     enum flags {
@@ -60,6 +59,8 @@ public :
     std::array<Mat, 8> boussoleGradient(int size = 3, type t = PREWITT);
 
 };
+
+void refineContour(const Mat& magnitude, const Mat& orientation, const Mat& contours, Mat& result, int range);
 
 
 #endif //PICTUREANALYSIS_GRADIENT_H

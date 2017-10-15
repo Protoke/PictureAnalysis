@@ -18,7 +18,8 @@ int main() {
 
     // load the original picture in cv mat
     Mat image;
-    image = imread("../data/image_simple_test.png", CV_LOAD_IMAGE_COLOR);
+    image = imread("../data/Lenna.png", CV_LOAD_IMAGE_COLOR);
+//    image = imread("../data/image_simple_test.png", CV_LOAD_IMAGE_COLOR);
     if(! image.data) {
         std::cout << "Error loading picture" << std::endl;
         return -1;
@@ -28,15 +29,20 @@ int main() {
     Gradient gradient(image);
 
     // affichage des gradients
-    for(unsigned int i = 0;i < gradient._gradients.size();i++) {
-        std::string title = "G" + std::to_string(i);
-        imshow(title, mat2gray(gradient._gradients[i]));
-    }
+//    for(unsigned int i = 0;i < gradient._gradients.size();i++) {
+//        std::string title = "G" + std::to_string(i);
+//        imshow(title, mat2gray(gradient._gradients[i]));
+//    }
 
     // affichage magnitude et orientation
     imshow("Magnitude", mat2gray(gradient._magnitude));
     imshow("Orientation", mat2gray(gradient._orientation));
     imshow("Orientation Map", gradient._orientation_map);
+    Mat seuil = hysteresisThreshold(gradient._magnitude, 50, 25, 3);
+    imshow("Seuillée", seuil);
+    Mat affine;
+    refineContour(gradient._magnitude, gradient._orientation, seuil, affine, 5);
+    imshow("Affinage", affine);
 
 //    cv::Mat img2 = imread("../data/Lenna.png", CV_LOAD_IMAGE_COLOR);
 //    cv::Mat img2 = imread("../data/image_simple.test.png", CV_LOAD_IMAGE_COLOR);

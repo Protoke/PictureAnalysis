@@ -119,34 +119,66 @@ void Gradient::orientation() {
 void Gradient::orientation_map(){
     for (int i = 0; i < _orientation_map.rows; ++i) {
         for (int j = 0; j < _orientation_map.cols; ++j) {
-            if(_magnitude.at<float>(i,j) > 0)
-                _orientation_map.at<Vec3b>(i,j) = Vec3b(cos(_orientation.at<float>(i,j)*M_PI/255.0) * 255,
-                                                    sin(_orientation.at<float>(i,j)*M_PI/255.0) * 255,
-                                                    0);
+            if(_magnitude.at<float>(i,j) > 0) {
+                _orientation_map.at<Vec3b>(i, j) = Vec3b(abs(cos(_orientation.at<float>(i, j) * M_PI/180.0)) * 255,
+                                                         abs(sin(_orientation.at<float>(i, j) * M_PI/180.0)) * 255,
+                                                         0);
+            }
         }
     }
 }
 
-void Gradient::refineContour(int range) {
-//    Range ranges[2];
-//    for (int i = 0; i < _magnitude.rows; ++i) {
-//        for (int j = 0; j < _magnitude.cols; ++j) {
-//
-//        }
-//    }
+void refineContour(const Mat& magnitude, const Mat& orientation, const Mat& contours, Mat& result, int range) {
+    contours.copyTo(result);
 
-    // Copie de _magnitude dans resultat
+    Mat rotation(2, 2, CV_32F);
+    for (int i = 0; i < result.rows; ++i) {
+        for (int j = 0; j < result.cols; ++j) {
+            // MAJ de la matrice de rotation pour l'orientation du point
+            float theta = orientation.at<float>(i,j) * M_PI/180.0;
+//            float theta = 4*M_PI/4;
+            rotation.at<float>(0,0) = cos(theta); rotation.at<float>(0,1) = -sin(theta);
+            rotation.at<float>(1,0) = sin(theta); rotation.at<float>(1,1) = cos(theta);
 
-    // tant que modification = vrai
-        // Copie de resultat dans magnitudeBis
-        // pour i = 0:rows
-            // pour j = 0:cols
-                // Si (_magnitude(i,j) > 0) et si
-                //    dans la direction du gradient, sur une distance range (dans les deux sens) il y a un point de magnitude supérieure
-                    // resultat(i,j) = 0
-                    // modification = vrai
-    // retourne resultat
+            // Calcul du vecteur direction du gradient
+            Vec2f dir;
+            Mat m = rotation * Mat(Vec2f(1,1), false);
+            m.copyTo(cv::Mat(dir, false));
+            normalize(dir, dir, 1.0, 0.0, NORM_L1);
 
+            // Calcul des points sur la droite, et vérification de leur valeur
+            float posCur = 1, negCur = -1;
+            Point2f pPosCur = Vec2f(i, j) + dir * posCur;
+            Point2f pNegCur = Vec2f(i, j) + dir * negCur;
+
+            if(orientation.at<float>(i,j) >= 359)
+                std::cout << orientation.at<float>(i,j) << " " << theta << " " << dir << " POINT (" << i << ";" << j << ") : " << magnitude.at<float>(i, j) << std::endl;
+
+            while(result.at<uchar>(i,j) != 0 &&
+                    (
+                            (pPosCur.x <= i+range && pPosCur.y <= j+range && pPosCur.x >= i-range && pPosCur.y >= j-range) ||
+                            (pNegCur.x <= i+range && pNegCur.y <= j+range && pNegCur.x >= i-range && pNegCur.y >= j-range))
+                    )
+            {
+//                std::cout << pPosCur << " " << pNegCur << std::endl;
+
+                if(pPosCur.x >= 0 && pPosCur.x < result.rows && pPosCur.y >= 0 && pPosCur.y < result.cols)
+                    if(magnitude.at<float>(round(pPosCur.x), round(pPosCur.y)) >= magnitude.at<float>(i, j)) {
+                        result.at<uchar>(i, j) = 0;
+//                        std::cout << "Set 0" << std::endl;
+                    }
+                if(pNegCur.x >= 0 && pNegCur.x < result.rows && pNegCur.y >= 0 && pNegCur.y < result.cols)
+                    if(magnitude.at<float>(round(pNegCur.x), round(pNegCur.y)) > magnitude.at<float>(i, j)){
+                        result.at<uchar>(i, j) = 0;
+//                        std::cout << "Set 0" << std::endl;
+                    }
+
+                posCur += 0.5; negCur -= 0.5;
+                pPosCur = Vec2f(i, j) + dir * posCur;
+                pNegCur = Vec2f(i, j) + dir * negCur;
+            }
+        }
+    }
 }
 
 float Gradient::getWeightedAngle(Mat& mag, Mat& ori)
