@@ -28,32 +28,32 @@ Gradient::Gradient(const Mat& img, int size, type t, int flags) {
     if(flags & N) {
         filter = Filter( boussole[0] );
         _gradients.emplace_back(filter.apply(image));
-        _directions.emplace_back(90.0);
+        _directions.emplace_back(0.0);
     }
     if(flags & NE) {
         filter = Filter( boussole[1] );
         _gradients.emplace_back(filter.apply(image));
-        _directions.emplace_back(45.0);
+        _directions.emplace_back(315.0);
     }
     if(flags & E) {
         filter = Filter( boussole[2] );
         _gradients.emplace_back(filter.apply(image));
-        _directions.emplace_back(0.0);
+        _directions.emplace_back(270.0);
     }
     if(flags & SE) {
         filter = Filter( boussole[3] );
         _gradients.emplace_back(filter.apply(image));
-        _directions.emplace_back(315.0);
+        _directions.emplace_back(225.0);
     }
     if(flags & S) {
         filter = Filter( boussole[4] );
         _gradients.emplace_back(filter.apply(image));
-        _directions.emplace_back(270.0);
+        _directions.emplace_back(180.0);
     }
     if(flags & SW) {
         filter = Filter( boussole[5] );
         _gradients.emplace_back(filter.apply(image));
-        _directions.emplace_back(225.0);
+        _directions.emplace_back(135.0);
     }
     if(flags & W) {
         filter = Filter( boussole[6] );
@@ -63,7 +63,7 @@ Gradient::Gradient(const Mat& img, int size, type t, int flags) {
     if(flags & NW) {
         filter = Filter( boussole[7] );
         _gradients.emplace_back(filter.apply(image));
-        _directions.emplace_back(135.0);
+        _directions.emplace_back(45.0);
     }
 
     magnitude();
@@ -110,7 +110,7 @@ void Gradient::orientation() {
         // CAS BIDIRECTIONNEL
         for(unsigned int i = 0;i < _rows;i++) {
             for(unsigned int j = 0;j < _cols;j++) {
-                _orientation.at<float>(i,j) = fastAtan2(_gradients[1].at<float>(i,j), _gradients[0].at<float>(i,j)) * 180/M_PI; // angle in degrees
+                _orientation.at<float>(i,j) = fastAtan2(_gradients[1].at<float>(i,j), _gradients[0].at<float>(i,j)); // angle in degrees
             }
         }
     }else {
@@ -120,10 +120,14 @@ void Gradient::orientation() {
                 // on recupere la direction du gradient max trouve
                 int id_gradient_max = _gradients_max.at<int>(i,j);
                 _orientation.at<float>(i,j) = (float)_directions[id_gradient_max];
+
+                if(_magnitude.at<float>(i,j) < 0){
+                    _magnitude.at<float>(i,j) = -_magnitude.at<float>(i,j);
+                    _orientation.at<float>(i,j) = 360.0-_orientation.at<float>(i,j);
+                }
             }
         }
     }
-    normalize(_orientation, _orientation, 0.0, 360.0, NORM_MINMAX);
 }
 
 
@@ -147,7 +151,6 @@ void refineContour(const Mat& magnitude, const Mat& orientation, const Mat& cont
         for (int j = 0; j < result.cols; ++j) {
             // MAJ de la matrice de rotation pour l'orientation du point
             float theta = orientation.at<float>(i,j) * M_PI/180.0;
-//            float theta = 4*M_PI/4;
             rotation.at<float>(0,0) = cos(theta); rotation.at<float>(0,1) = -sin(theta);
             rotation.at<float>(1,0) = sin(theta); rotation.at<float>(1,1) = cos(theta);
 
@@ -162,8 +165,8 @@ void refineContour(const Mat& magnitude, const Mat& orientation, const Mat& cont
             Point2f pPosCur = Vec2f(i, j) + dir * posCur;
             Point2f pNegCur = Vec2f(i, j) + dir * negCur;
 
-//            if(orientation.at<float>(i,j) >= 359)
-//                std::cout << orientation.at<float>(i,j) << " " << theta << " " << dir << " POINT (" << i << ";" << j << ") : " << magnitude.at<float>(i, j) << std::endl;
+            if(result.at<uchar>(i,j) != 0)
+                std::cout << orientation.at<float>(i,j) << " " << theta << " " << dir << " POINT (" << i << ";" << j << ") : " << magnitude.at<float>(i, j) << std::endl;
 
             while(result.at<uchar>(i,j) != 0 &&
                     (
@@ -171,15 +174,15 @@ void refineContour(const Mat& magnitude, const Mat& orientation, const Mat& cont
                             (pNegCur.x <= i+range && pNegCur.y <= j+range && pNegCur.x >= i-range && pNegCur.y >= j-range))
                     )
             {
-//                std::cout << pPosCur << " " << pNegCur << std::endl;
+                std::cout << pPosCur << " " << pNegCur << std::endl;
 
                 if(pPosCur.x >= 0 && pPosCur.x < result.rows && pPosCur.y >= 0 && pPosCur.y < result.cols)
-                    if(magnitude.at<float>(round(pPosCur.x), round(pPosCur.y)) >= magnitude.at<float>(i, j)) {
+                    if(magnitude.at<float>(round(pPosCur.x), round(pPosCur.y)) > magnitude.at<float>(i, j)) {
                         result.at<uchar>(i, j) = 0;
 //                        std::cout << "Set 0" << std::endl;
                     }
                 if(pNegCur.x >= 0 && pNegCur.x < result.rows && pNegCur.y >= 0 && pNegCur.y < result.cols)
-                    if(magnitude.at<float>(round(pNegCur.x), round(pNegCur.y)) > magnitude.at<float>(i, j)){
+                    if(magnitude.at<float>(round(pNegCur.x), round(pNegCur.y)) >= magnitude.at<float>(i, j)){
                         result.at<uchar>(i, j) = 0;
 //                        std::cout << "Set 0" << std::endl;
                     }

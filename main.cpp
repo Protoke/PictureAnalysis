@@ -5,6 +5,7 @@
 #include "threshold.h"
 #include "gradient.h"
 #include "graphe.h"
+#include <list>
 #include <string.h>
 
 using namespace cv;
@@ -26,7 +27,7 @@ int main() {
 
     // load the original picture in cv mat
     Mat image;
-    //image = imread("../data/Lenna.png", CV_LOAD_IMAGE_COLOR);
+//    image = imread("../data/Lenna.png", CV_LOAD_IMAGE_COLOR);
     image = imread("../data/image_simple_test.png", CV_LOAD_IMAGE_COLOR);
     if(! image.data) {
         std::cout << "Error loading picture" << std::endl;
@@ -35,7 +36,8 @@ int main() {
     imshow("Source", image);
 
     // calcul gradients, magnitude, orientation de l'image
-    Gradient gradient(image, 7, Gradient::PREWITT, Gradient::E | Gradient::S | Gradient::SW | Gradient::SE);
+//    Gradient gradient(image, 3, Gradient::PREWITT, Gradient::E | Gradient::S | Gradient::SW | Gradient::SE);
+    Gradient gradient(image, 3, Gradient::PREWITT, Gradient::E | Gradient::N);
 
     // affichage des gradients
 //    for(unsigned int i = 0;i < gradient._gradients.size();i++) {
@@ -50,7 +52,7 @@ int main() {
     Mat seuil = hysteresisThreshold(gradient._magnitude, 50, 25, 3);
     imshow("Seuillée", seuil);
     Mat affine;
-    refineContour(gradient._magnitude, gradient._orientation, seuil, affine, 5);
+    refineContour(gradient._magnitude, gradient._orientation, seuil, affine, 3);
     imshow("Affinage", affine);
 
 //    cv::Mat img2 = imread("../data/Lenna.png", CV_LOAD_IMAGE_COLOR);
