@@ -32,15 +32,16 @@ int main() {
         std::cout << "Error loading picture" << std::endl;
         return -1;
     }
+    imshow("Source", image);
 
     // calcul gradients, magnitude, orientation de l'image
     Gradient gradient(image, 7, Gradient::PREWITT, Gradient::E | Gradient::S | Gradient::SW | Gradient::SE);
 
     // affichage des gradients
-    for(unsigned int i = 0;i < gradient._gradients.size();i++) {
-        std::string title = "G" + std::to_string(i);
-        imshow(title, abs(gradient._gradients[i]));
-    }
+//    for(unsigned int i = 0;i < gradient._gradients.size();i++) {
+//        std::string title = "G" + std::to_string(i);
+//        imshow(title, gradient._gradients[i]);
+//    }
 
     // affichage magnitude et orientation
     imshow("Magnitude", mat2gray(gradient._magnitude));
