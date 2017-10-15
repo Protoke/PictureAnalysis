@@ -49,16 +49,14 @@ public :
     Gradient(const Mat& img, bool display);
     Gradient(const Mat& img, int size = 3, type t = PREWITT, int flags = S | E);
 
-    float getWeightedAngle(Mat& mag, Mat& ori);
-
-    Mat horizontalTopGradient(int size = 3, type t = PREWITT);
-    Mat verticalLeftGradient(int size = 3, type t = PREWITT);
-    Mat horizontalBottomGradient(int size = 3, type t = PREWITT);
-    Mat verticalRightGradient(int size = 3, type t = PREWITT);
-    Mat diagonalTopLeftGradient(int size = 3, type t = PREWITT);
-    Mat diagonalTopRightGradient(int size = 3, type t = PREWITT);
-    Mat diagonalBottomLeftGradient(int size = 3, type t = PREWITT);
-    Mat diagonalBottomRightGradient(int size = 3, type t = PREWITT);
+    Mat southGradient(int size = 3, type t = PREWITT);
+    Mat eastGradient(int size = 3, type t = PREWITT);
+    Mat northGradient(int size = 3, type t = PREWITT);
+    Mat westGradient(int size = 3, type t = PREWITT);
+    Mat southEastGradient(int size = 3, type t = PREWITT);
+    Mat southWestGradient(int size = 3, type t = PREWITT);
+    Mat northEastGradient(int size = 3, type t = PREWITT);
+    Mat northWestGradient(int size = 3, type t = PREWITT);
     std::array<Mat, 8> boussoleGradient(int size = 3, type t = PREWITT);
 
 };

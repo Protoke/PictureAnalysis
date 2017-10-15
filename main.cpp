@@ -4,14 +4,22 @@
 #include "filter.h"
 #include "threshold.h"
 #include "gradient.h"
+#include "graphe.h"
 #include <string.h>
 
 using namespace cv;
 
-Mat mat2gray(const cv::Mat& src){
+Mat mat2gray(const Mat& src){
     Mat dst;
-    normalize(src, dst, 0.0, 255.0, cv::NORM_MINMAX, CV_8U);
+    normalize(src, dst, 0.0, 255.0, NORM_MINMAX, CV_8U);
     return dst;
+}
+
+std::vector<std::list> chaining(const Mat& affine, const Mat& orientation) {
+    std::vector<std::list> chains;
+
+    return chains;
+
 }
 
 int main() {
@@ -25,18 +33,27 @@ int main() {
     }
 
     // calcul gradients, magnitude, orientation de l'image
-    Gradient gradient(image, 3, PREWITT, Gradient::E | Gradient::NW | Gradient::SE );
+    Gradient gradient(image, 7, Gradient::SOBEL, Gradient::E | Gradient::S | Gradient::SW | Gradient::SE);
 
     // affichage des gradients
     for(unsigned int i = 0;i < gradient._gradients.size();i++) {
         std::string title = "G" + std::to_string(i);
-        imshow(title, gradient._gradients[i]);
+        //imshow(title, abs(gradient._gradients[i]));
     }
 
+
     // affichage magnitude et orientation
-    imshow("Magnitude", mat2gray(gradient._magnitude));
-    imshow("Orientation", mat2gray(gradient._orientation));
-    imshow("Orientation Map", gradient._orientation_map);
+    //imshow("Magnitude", mat2gray(gradient._magnitude));
+    //imshow("Orientation", mat2gray(gradient._orientation));
+    //imshow("Orientation Map", gradient._orientation_map);
+
+    //Mat resH = hysteresisThreshold(gradient._magnitude, 80, 80*0.8, 7);
+    //imshow("Hyseteris", resH);
+    //Mat refine = gradient.refineContours(image, 3);
+    //imshow("Refine", mat2gray(refine));
+
+
+    /******************************************************************/
 
 //    cv::Mat img2 = imread("../data/Lenna.png", CV_LOAD_IMAGE_COLOR);
 //    cv::Mat img2 = imread("../data/image_simple.test.png", CV_LOAD_IMAGE_COLOR);
@@ -59,7 +76,7 @@ int main() {
 
 //    filt.at<float>(1,1) = 1.0;
 
-    /*filt = Gradient::horizontalTopGradient();
+    /*filt = Gradient::southGradient();
 
     Filter f(filt);
     Mat result = f.apply(img2);

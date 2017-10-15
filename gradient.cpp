@@ -21,48 +21,49 @@ Gradient::Gradient(const Mat& img, int size, type t, int flags) {
     image.convertTo(image, CV_8UC1);
 
     // init des differents gradients de l'image
-    std::array<Mat, 8> gradients = boussoleGradient(size, t);
+    std::array<Mat,8> boussole = boussoleGradient(size, t);
 
+    // lecture des flags, filtres choisis
     Filter filter;
     if(flags & N) {
-        filter = Filter( gradients[4] );
+        filter = Filter( boussole[0] );
         _gradients.emplace_back(filter.apply(image));
-        _directions.emplace_back(270.0);
+        _directions.emplace_back(90.0);
     }
     if(flags & NE) {
-        filter = Filter( gradients[7] );
+        filter = Filter( boussole[1] );
         _gradients.emplace_back(filter.apply(image));
-        _directions.emplace_back(315.0);
+        _directions.emplace_back(45.0);
     }
     if(flags & E) {
-        filter = Filter( gradients[1] );
+        filter = Filter( boussole[2] );
         _gradients.emplace_back(filter.apply(image));
         _directions.emplace_back(0.0);
     }
     if(flags & SE) {
-        filter = Filter( gradients[3] );
+        filter = Filter( boussole[3] );
         _gradients.emplace_back(filter.apply(image));
-        _directions.emplace_back(45.0);
+        _directions.emplace_back(315.0);
     }
     if(flags & S) {
-        filter = Filter( gradients[0] );
+        filter = Filter( boussole[4] );
         _gradients.emplace_back(filter.apply(image));
-        _directions.emplace_back(90.0);
+        _directions.emplace_back(270.0);
     }
     if(flags & SW) {
-        filter = Filter( gradients[2] );
+        filter = Filter( boussole[5] );
         _gradients.emplace_back(filter.apply(image));
-        _directions.emplace_back(135.0);
+        _directions.emplace_back(225.0);
     }
     if(flags & W) {
-        filter = Filter( gradients[5] );
+        filter = Filter( boussole[6] );
         _gradients.emplace_back(filter.apply(image));
         _directions.emplace_back(180.0);
     }
     if(flags & NW) {
-        filter = Filter( gradients[6] );
+        filter = Filter( boussole[7] );
         _gradients.emplace_back(filter.apply(image));
-        _directions.emplace_back(225.0);
+        _directions.emplace_back(135.0);
     }
 
     magnitude();
@@ -88,10 +89,10 @@ void Gradient::magnitude() {
             for(unsigned int j = 0;j < _cols;j++) {
                 // gradient max = magnitude
                 int id_gradient_max = 0;
-                float max = _gradients[0].at<float>(i,j);
+                float max = abs(_gradients[0].at<float>(i,j));
                 for(unsigned int k = 1;k < _gradients.size();k++) {
-                    if(_gradients[k].at<float>(i,j) > max) {
-                        max = _gradients[k].at<float>(i,j);
+                    if(abs(_gradients[k].at<float>(i,j)) > max) {
+                        max = abs(_gradients[k].at<float>(i,j));
                         id_gradient_max = k;
                     }
 
@@ -99,6 +100,7 @@ void Gradient::magnitude() {
                 // on sauvegarde le gradient max et l'id du filtre auquel il correspond
                 _magnitude.at<float>(i,j) = _gradients[id_gradient_max].at<float>(i,j);
                 _gradients_max.at<int>(i,j) = id_gradient_max;
+
             }
         }
     }
@@ -122,7 +124,7 @@ void Gradient::orientation() {
             }
         }
     }
-    normalize(_orientation, _orientation, 0, 360, NORM_MINMAX);
+    normalize(_orientation, _orientation, 0.0, 360.0, NORM_MINMAX);
 }
 
 
@@ -130,10 +132,10 @@ void Gradient::orientation() {
 void Gradient::orientation_map(){
     for (int i = 0; i < _orientation_map.rows; ++i) {
         for (int j = 0; j < _orientation_map.cols; ++j) {
-            if(_magnitude.at<float>(i,j) > 0)
-                _orientation_map.at<Vec3b>(i,j) = Vec3b(cos(_orientation.at<float>(i,j)*M_PI/255.0) * 255,
-                                                    sin(_orientation.at<float>(i,j)*M_PI/255.0) * 255,
-                                                    0);
+            if(_magnitude.at<float>(i,j) != 0)
+                _orientation_map.at<Vec3b>(i,j) = Vec3b(abs(cos(_orientation.at<float>(i,j)*M_PI/180.0) * 255.0),
+                                                        0,
+                                                        abs(sin(_orientation.at<float>(i,j)*M_PI/180.0) * 255.0));
         }
     }
 }
@@ -157,27 +159,9 @@ void Gradient::refineContour(int range) {
                     // resultat(i,j) = 0
                     // modification = vrai
     // retourne resultat
-
 }
 
-float Gradient::getWeightedAngle(Mat& mag, Mat& ori)
-{
-    float res = 0;
-    float n = 0;
-    for (int i = 0;i < mag.rows;++i){
-        for (int j = 0;j< mag.cols;++j){
-            res += ori.at<float>(i,j)*mag.at<float>(i,j);
-            n += mag.at<float>(i,j);
-        }
-    }
-    if(n != 0)
-        res/=n;
-    else
-        res = -1;
-    return res;
-}
-
-Mat Gradient::horizontalTopGradient(int size, type t) {
+Mat Gradient::southGradient(int size, type t) {
     // size must be even
     assert(size%2 == 1);
 
@@ -245,14 +229,14 @@ Mat Gradient::horizontalTopGradient(int size, type t) {
     }
 }
 
-Mat Gradient::verticalLeftGradient(int size, type t) {
-    Mat mat = horizontalTopGradient(size, t);
+Mat Gradient::eastGradient(int size, type t) {
+    Mat mat = southGradient(size, t);
     mat = mat.t();
     return mat;
 }
 
 
-Mat Gradient::horizontalBottomGradient(int size, type t) {
+Mat Gradient::northGradient(int size, type t) {
     // size must be even
     assert(size%2 == 1);
 
@@ -271,11 +255,11 @@ Mat Gradient::horizontalBottomGradient(int size, type t) {
         mat.at<int>(size/2, size/2) = 0;
         return mat;
     }else {
-        return -horizontalTopGradient(size, t);
+        return -southGradient(size, t);
     }
 }
 
-Mat Gradient::verticalRightGradient(int size, type t) {
+Mat Gradient::westGradient(int size, type t) {
     // size must be even
     assert(size%2 == 1);
 
@@ -292,11 +276,11 @@ Mat Gradient::verticalRightGradient(int size, type t) {
         }
         return mat;
     }else {
-        return -verticalLeftGradient(size, t);
+        return -eastGradient(size, t);
     }
 }
 
-Mat Gradient::diagonalTopLeftGradient(int size, type t) {
+Mat Gradient::southEastGradient(int size, type t) {
     // size must be even
     assert(size%2 == 1);
 
@@ -348,7 +332,7 @@ Mat Gradient::diagonalTopLeftGradient(int size, type t) {
     }
 }
 
-Mat Gradient::diagonalTopRightGradient(int size, type t) {
+Mat Gradient::southWestGradient(int size, type t) {
     // size must be even
     assert(size%2 == 1);
 
@@ -399,7 +383,7 @@ Mat Gradient::diagonalTopRightGradient(int size, type t) {
 }
 
 
-Mat Gradient::diagonalBottomLeftGradient(int size, type t) {
+Mat Gradient::northEastGradient(int size, type t) {
     // size must be even
     assert(size%2 == 1);
 
@@ -416,11 +400,11 @@ Mat Gradient::diagonalBottomLeftGradient(int size, type t) {
         }
         return mat;
     }else{
-        return -diagonalTopRightGradient(size, t);
+        return -southWestGradient(size, t);
     }
 }
 
-Mat Gradient::diagonalBottomRightGradient(int size, type t) {
+Mat Gradient::northWestGradient(int size, type t) {
     // size must be even
     assert(size%2 == 1);
 
@@ -477,14 +461,14 @@ std::array<Mat, 8> Gradient::boussoleGradient(int size, type t) {
     assert(size%2 == 1);
 
     std::array<Mat, 8> gradients;
-    gradients[0] = horizontalTopGradient(size, t);
-    gradients[1] = verticalLeftGradient(size, t);
-    gradients[2] = diagonalTopRightGradient(size, t);
-    gradients[3] = diagonalTopLeftGradient(size, t);
-    gradients[4] = horizontalBottomGradient(size, t);
-    gradients[5] = verticalRightGradient(size, t);
-    gradients[6] = diagonalBottomRightGradient(size, t);
-    gradients[7] = diagonalBottomLeftGradient(size, t);
+    gradients[0] = northGradient(size, t);
+    gradients[1] = northEastGradient(size, t);
+    gradients[2] = eastGradient(size, t);
+    gradients[3] = southEastGradient(size, t);
+    gradients[4] = southGradient(size, t);
+    gradients[5] = southWestGradient(size, t);
+    gradients[6] = westGradient(size, t);
+    gradients[7] = northWestGradient(size, t);
 
     return gradients;
 }
