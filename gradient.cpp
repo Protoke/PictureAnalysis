@@ -143,8 +143,9 @@ void Gradient::orientation_map(){
     }
 }
 
-void refineContour(const Mat& magnitude, const Mat& orientation, const Mat& contours, Mat& result, int range) {
+void refineContour(const Mat& magnitude, const Mat& orientation, const Mat& contours, Mat& result, int size) {
     contours.copyTo(result);
+    int range = (size-1.0)/2.0;
 
     Mat rotation(2, 2, CV_32F);
     for (int i = 0; i < result.rows; ++i) {
@@ -165,8 +166,8 @@ void refineContour(const Mat& magnitude, const Mat& orientation, const Mat& cont
             Point2f pPosCur = Vec2f(i, j) + dir * posCur;
             Point2f pNegCur = Vec2f(i, j) + dir * negCur;
 
-            if(result.at<uchar>(i,j) != 0)
-                std::cout << orientation.at<float>(i,j) << " " << theta << " " << dir << " POINT (" << i << ";" << j << ") : " << magnitude.at<float>(i, j) << std::endl;
+//            if(result.at<uchar>(i,j) != 0)
+//                std::cout << orientation.at<float>(i,j) << " " << theta << " " << dir << " POINT (" << i << ";" << j << ") : " << magnitude.at<float>(i, j) << std::endl;
 
             while(result.at<uchar>(i,j) != 0 &&
                     (
@@ -174,7 +175,7 @@ void refineContour(const Mat& magnitude, const Mat& orientation, const Mat& cont
                             (pNegCur.x <= i+range && pNegCur.y <= j+range && pNegCur.x >= i-range && pNegCur.y >= j-range))
                     )
             {
-                std::cout << pPosCur << " " << pNegCur << std::endl;
+//                std::cout << pPosCur << " " << pNegCur << std::endl;
 
                 if(pPosCur.x >= 0 && pPosCur.x < result.rows && pPosCur.y >= 0 && pPosCur.y < result.cols)
                     if(magnitude.at<float>(round(pPosCur.x), round(pPosCur.y)) > magnitude.at<float>(i, j)) {
