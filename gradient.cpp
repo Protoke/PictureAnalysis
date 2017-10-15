@@ -110,7 +110,7 @@ void Gradient::orientation() {
         // CAS BIDIRECTIONNEL
         for(unsigned int i = 0;i < _rows;i++) {
             for(unsigned int j = 0;j < _cols;j++) {
-                _orientation.at<float>(i,j) = fastAtan2(_gradients[1].at<float>(i,j), _gradients[0].at<float>(i,j)) * 180/M_PI; // angle in degrees
+                _orientation.at<float>(i,j) = fastAtan2(_gradients[1].at<float>(i,j), _gradients[0].at<float>(i,j)); // angle in degrees
             }
         }
     }else {
@@ -123,7 +123,6 @@ void Gradient::orientation() {
             }
         }
     }
-    normalize(_orientation, _orientation, 0.0, 360.0, NORM_MINMAX);
 }
 
 
