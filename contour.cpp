@@ -6,6 +6,8 @@
 #include <functional>
 #include <vector>
 
+float DISTANCE_SEARCH_CONTOUR = 5.0;
+
 Contour::Contour(const Mat& affine, Mat& orientation, Mat& magnitude) {
     // copie de l'image affinee
     _mat = Mat::zeros(affine.rows, affine.cols, CV_8U);
@@ -35,12 +37,17 @@ Contour::Contour(const Mat& affine, Mat& orientation, Mat& magnitude) {
     std::vector<ContourNode*> graphs = std::vector<ContourNode*>(0);
     for(unsigned int i = 0;i < extreme_chains.size();i++) {
         for(unsigned int j = i+1;j < extreme_chains.size();j++) {
-            ContourNode* node = buildGraph(extreme_chains[i], extreme_chains[j]);
-            graphs.push_back( node );
+            ContourNode* n = buildGraph(extreme_chains[i], extreme_chains[j]);
+            if(n != NULL) {
+                graphs.push_back( n );
+                std::list<Point2i> path = searchFasterPath(n, extreme_chains[j]);
+
+            }
             //std::cout << extreme_chains[i].y << " " << extreme_chains[i].x << "  LINK  " << extreme_chains[j].y << " " << extreme_chains[j].x << std::endl;
         }
     }
-    unsigned int i = 0;
+    // TODO draw the path
+    /*unsigned int i = 0;
     for(ContourNode* n : graphs) {
         std::cout << "Noeud " << i << std::endl;
         std::cout << n->p << std::endl;
@@ -49,10 +56,10 @@ Contour::Contour(const Mat& affine, Mat& orientation, Mat& magnitude) {
             std::cout << c->p << std::endl;
         }
         i++;
-    }
+    }*/
 
     for(ContourNode* n : graphs) {
-            free(n);
+            deleteContourNodes(n);
     }
 
     /*Point2i p0 = _chains[0].back();
@@ -88,76 +95,95 @@ void Contour::chaining() {
 }
 
 ContourNode* Contour::buildGraph(Point2i start, Point2i end) {
-    std::set<ContourNode*> nodesDone = std::set<ContourNode*>();
-    std::set<ContourNode*> nodesToDo = std::set<ContourNode*>();
-
-    ContourNode* nStart = new ContourNode();
-    nStart->p = start;
-    nStart->weight = 0.0;
-    ContourNode* currentNode;
-
-    bool end_found = false;
-    float distance_start_current = 0.0;
     float distance_start_end = sqrt( (end.x - start.x)*(end.x - start.x) + (end.y - start.y)*(end.y - start.y) );
-    float coef_distance = 2.0;
 
-    nodesToDo.insert(nStart);
+    // on ne construit un graphe que si les 2 points sont suffisamment proches
+    if(distance_start_end < DISTANCE_SEARCH_CONTOUR) {
+        std::set<ContourNode*> nodesDone = std::set<ContourNode*>();
+        std::set<ContourNode*> nodesToDo = std::set<ContourNode*>();
 
-    while(!nodesToDo.empty() && distance_start_current <= coef_distance*distance_start_end) {
-        // on met a jour le noeud courant en recuperant un noeud dans la pile de noeuds a traiter et on le supprime des noeuds a traiter
-        currentNode = *nodesToDo.begin();
-        nodesToDo.erase(currentNode);
+        ContourNode* nStart = new ContourNode();
+        nStart->p = start;
+        nStart->weight = 0.0;
+        nStart->src = NULL;
+        ContourNode* currentNode;
 
-        distance_start_current = sqrt( (currentNode->p.x - start.x)*(currentNode->p.x - start.x) + (currentNode->p.y - start.y)*(currentNode->p.y - start.y) );
+        bool end_found = false;
+        float distance_start_current = 0.0;
+        float coef_distance = 2.0;
 
-        currentNode->childrens = std::set<ContourNode*>();
+        nodesToDo.insert(nStart);
 
-        // on parcourt les voisins, pour voir s'il y a le point final dans le voisinage
-        for(unsigned int i = std::max(0, currentNode->p.y-1);i <= min(_mat.rows-1, currentNode->p.y+1);i++) {
-            for (unsigned int j = std::max(0, currentNode->p.x - 1);
-                 j <= min(_mat.cols - 1, currentNode->p.x + 1); j++) {
-                // si ce n'est pas le point central
-                // si | ori(a) - ori(b) | < PI/2 alors b est un point suivant potentiel du contour
-                if (!(i == currentNode->p.y && j == currentNode->p.x) &&
-                    Point2i(j,i) == end) {
-                    // si c'est le point final, le point courant ne doit pas avoir d'autres fils que lui
-                    ContourNode* n = new ContourNode();
-                    n->p = Point2i(j, i);
-                    n->weight = currentNode->weight + abs(_magnitude->at<float>(i, j));
-                    currentNode->childrens.insert(n);
-                    end_found = true;
-                }
-            }
-        }
+        while(!nodesToDo.empty() && distance_start_current <= coef_distance*distance_start_end) {
+            // on met a jour le noeud courant en recuperant un noeud dans la pile de noeuds a traiter et on le supprime des noeuds a traiter
+            currentNode = *nodesToDo.begin();
+            nodesToDo.erase(currentNode);
 
-        if(!end_found) {
-            // on parcourt les voisins
+            distance_start_current = sqrt( (currentNode->p.x - start.x)*(currentNode->p.x - start.x) + (currentNode->p.y - start.y)*(currentNode->p.y - start.y) );
+
+            currentNode->childrens = std::set<ContourNode*>();
+
+            // on parcourt les voisins, pour voir s'il y a le point final dans le voisinage
             for(unsigned int i = std::max(0, currentNode->p.y-1);i <= min(_mat.rows-1, currentNode->p.y+1);i++) {
-                for(unsigned int j = std::max(0, currentNode->p.x-1);j <= min(_mat.cols-1, currentNode->p.x+1);j++) {
+                for (unsigned int j = std::max(0, currentNode->p.x - 1);
+                     j <= min(_mat.cols - 1, currentNode->p.x + 1); j++) {
                     // si ce n'est pas le point central
-                    // si la magnitude (norme du gradient) en ce point n'est pas nulle
                     // si | ori(a) - ori(b) | < PI/2 alors b est un point suivant potentiel du contour
-                    if( !(i==currentNode->p.y && j==currentNode->p.x) &&
-                        _magnitude->at<float>(i,j) != 0 ) {// &&
-                        //(abs( fmod(_orientation->at<float>(currentNode->p.y,currentNode->p.x - _orientation->at<float>(i,j) ), 2.0*M_PI) )  < M_PI/2)) {
-                        ContourNode* n = new ContourNode();
-                        n->p = Point2i(j,i);
-                        n->weight = currentNode->weight + abs(_magnitude->at<float>(i,j));
-                        currentNode->childrens.insert(n);
+                    // si ce n'est pas son pere
+                    if (!(i == currentNode->p.y && j == currentNode->p.x) &&
+                        Point2i(j,i) == end) {
 
-                        nodesToDo.insert(n);
+                        if(currentNode->src == NULL || (currentNode->src != NULL && !(i==currentNode->src->p.y && j==currentNode->src->p.x)) ) {
+                            // si c'est le point final, le point courant ne doit pas avoir d'autres fils que lui
+                            ContourNode* n = new ContourNode();
+                            n->p = Point2i(j, i);
+                            //n->weight = currentNode->weight + abs(_magnitude->at<float>(i, j));
+                            n->src = currentNode;
+                            currentNode->childrens.insert(n);
+                            end_found = true;
+                        }
+
+
                     }
                 }
             }
+
+            if(!end_found) {
+                // on parcourt les voisins
+                for(unsigned int i = std::max(0, currentNode->p.y-1);i <= min(_mat.rows-1, currentNode->p.y+1);i++) {
+                    for(unsigned int j = std::max(0, currentNode->p.x-1);j <= min(_mat.cols-1, currentNode->p.x+1);j++) {
+                        // si ce n'est pas le point central
+                        // si la magnitude (norme du gradient) en ce point n'est pas nulle
+                        // si | ori(a) - ori(b) | < PI/2 alors b est un point suivant potentiel du contour
+                        // si ce n'est pas son pere
+                        if( !(i==currentNode->p.y && j==currentNode->p.x) &&
+                            _magnitude->at<float>(i,j) != 0) {// &&
+                            //(abs( fmod(_orientation->at<float>(currentNode->p.y,currentNode->p.x - _orientation->at<float>(i,j) ), 2.0*M_PI) )  < M_PI/2)) {
+
+                                if(currentNode->src == NULL || (currentNode->src != NULL && !(i==currentNode->src->p.y && j==currentNode->src->p.x)) ) {
+                                    ContourNode* n = new ContourNode();
+                                    n->p = Point2i(j,i);
+                                    //n->weight = currentNode->weight + abs(_magnitude->at<float>(i,j));
+                                    n->src = currentNode;
+                                    currentNode->childrens.insert(n);
+
+                                    nodesToDo.insert(n);
+
+                                }
+
+                        }
+                    }
+                }
+            }
+            // on ajoute le noeud courant aux noeuds traites
+            nodesDone.insert(currentNode);
+
         }
 
-        // on ajoute le noeud courant aux noeuds traites
-        nodesDone.insert(currentNode);
-
+        return nStart;
+    }else {
+        return NULL;
     }
-
-
-    return nStart;
 }
 
 bool Contour::isStart(int y, int x) {
@@ -273,30 +299,69 @@ bool Contour::contains(std::vector<Point2i> extremes, Point2i point) {
     return false;
 }
 
-std::vector<Point2i> Contour::searchFasterPath(ContourNode* graph, ContourNode* start, ContourNode* end) {
+std::list<Point2i> Contour::searchFasterPath(ContourNode* start, Point2i end) {
+    start->weight = 0.0;
+    start->heuristic = 0.0;
+    std::list<Point2i> path;
+    std::set<ContourNode*> list; // contains the values in open and closed lists
     std::queue<ContourNode*> closedList;
     std::priority_queue< ContourNode*, std::vector<ContourNode*>, std::function<int (ContourNode*, ContourNode*)> > openList (compareContourNode);
     openList.push(start);
+    list.insert(start);
     while(!openList.empty()) {
         ContourNode* n = openList.top();
         openList.pop();
-        // TODO
+        list.erase(n);
+        // si on atteint le point final, on reconstitue le chemin
+        if( n->p == end ) {
+            path.push_front(n->p);
+            while(n->src != NULL) {
+                path.push_front(n->src->p);
+                n = n->src;
+            }
+            return path;
+        }
+        for(ContourNode* child : n->childrens) {
+            auto c = list.find(child);
+            if( list.count(child) > 0 && (*c)->weight > child->weight ) {
+                // si cet enfant existe deja dans open ou closed list avec un poids (somme des magnitudes) superieur
+                // ne rien faire
+            }else {
+                // on veut maximiser l'heuristique (somme des magnitudes - distance(point, point final) )
+                child->weight = n->weight + abs(_magnitude->at<float>(n->p.y,n->p.x));
+                child->heuristic = child->weight - distance(child->p, end); // on cherche le poids max (somme des magnitude) en minimisant la distance au point final
+                openList.push(child);
+                list.insert(child);
+            }
+            closedList.push(n);
+            list.insert(n);
+        }
     }
 
-    return std::vector<Point2i>();
+    return path;
 
 }
 
 int Contour::compareContourNode(ContourNode* n1, ContourNode* n2) {
-    if(n1->weight > n2->weight)
+    if(n1->heuristic > n2->heuristic)
         return 1;
-    if(n1->weight == n2->weight)
+    if(n1->heuristic == n2->heuristic)
         return 0;
     return -1;
 }
 
-bool equal(ContourNode* n1, ContourNode* n2) {
+bool Contour::equal(ContourNode* n1, ContourNode* n2) {
     if(n1->p.x == n2->p.x && n1->p.y == n2->p.y)
         return true;
     return false;
+}
+
+float Contour::distance(Point2i p1, Point2i p2) {
+    return sqrt( (p2.x - p1.x)*(p2.x - p1.x) + (p2.y - p1.y)*(p2.y - p1.y) );
+}
+
+void Contour::deleteContourNodes(ContourNode* n) {
+    for(ContourNode* child : n->childrens)
+        deleteContourNodes(child);
+    delete(n);
 }

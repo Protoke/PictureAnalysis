@@ -12,8 +12,10 @@ using namespace cv;
 
 struct ContourNode {
     Point2i p;
+    ContourNode* src;
     std::set<ContourNode*> childrens;
     float weight;
+    float heuristic;
 } ;
 
 class Contour {
@@ -30,8 +32,11 @@ public:
     bool isDone(Point2i point);
     Mat draw_chains();
     bool contains(std::vector<Point2i> extremes, Point2i point);
-    std::vector<Point2i> searchFasterPath(ContourNode* graph, ContourNode* start, ContourNode* end);
+    std::list<Point2i> searchFasterPath(ContourNode* start, Point2i end);
     static int compareContourNode(ContourNode* n1, ContourNode* n2);
+    bool equal(ContourNode* n1, ContourNode* n2);
+    float distance(Point2i p1, Point2i p2);
+    void deleteContourNodes(ContourNode* n);
     // TODO fonction free pour tous les pointeurs
 
 private:
