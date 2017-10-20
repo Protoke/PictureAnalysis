@@ -24,12 +24,6 @@ void computeContours(const Mat& image, Mat& result,
     // calcul gradients, magnitude, orientation de l'image
     Gradient gradient(image, 3, filterType, gradientType);
 
-    // affichage des gradients
-//    for(unsigned int i = 0;i < gradient._gradients.size();i++) {
-//        std::string title = "G" + std::to_string(i);
-//        imshow(title, gradient._gradients[i]);
-//    }
-
     // affichage magnitude et orientation
     if(showIntermediate) {
         imshow("Magnitude", mat2gray(gradient._magnitude));
@@ -47,7 +41,6 @@ void computeContours(const Mat& image, Mat& result,
         imshow("Affinage", affine);
 
 //    Contour contour(affine, gradient._orientation, gradient._magnitude);
-//
 //
 //    Size size(affine.cols * 1.5, affine.rows * 1.5);
 //    Mat scale0;
@@ -140,70 +133,50 @@ int main() {
                     thresholdMax, thresholdMin, thresholdSize, refiningSize, showIntermediate);
 
 
-    /*// load the original picture in cv mat
-    Mat image = imread("../data/Lenna.png", CV_LOAD_IMAGE_COLOR);
-//    image = imread("../data/image_simple_test.png", CV_LOAD_IMAGE_COLOR);
-    if(! image.data) {
-        std::cout << "Error loading picture" << std::endl;
-        return -1;
-    }
-    imshow("Source", image);
-
-    Mat result;
-    computeContours(image, result, Gradient::PREWITT, Gradient::N | Gradient::E, 50, 25, 3, 3, 1);*/
+    /* Force les valeurs à la main, commenter l'interface */
+//    Mat image = imread("../data/Lenna.png", CV_LOAD_IMAGE_COLOR);
+////    image = imread("../data/image_simple_test.png", CV_LOAD_IMAGE_COLOR);
+//    if(! image.data) {
+//        std::cout << "Error loading picture" << std::endl;
+//        return -1;
+//    }
+//    imshow("Source", image);
+//
+//    Mat result;
+//    computeContours(image, result, Gradient::PREWITT, Gradient::N | Gradient::E, 50, 25, 3, 3, 1);
 
     imshow("Resultat", result);
     waitKey(0);
 
 
-    // ANAIS
-    bool testContour = true;
-    if(testContour) {
-        uchar img[] =  {  0,     0,   0,  0,  0,
-                          0,   255, 255,  0, 255,
-                          255,   0,   0,  0,  0 };
-        float ori[] =  {0.0,   0.0,  0.0,  0.0,  0.0,
-                        0.0,   0.0,  0.0,  0.0,  0.0,
-                        0.0,   0.0,  0.0,  0.0,  0.0 };
-        float mag[] = {  0.0,   0.0,    10.0,  0.0,  0.0,
-                         10.0,  10.0,   10.0,  10.0,  10.0,
-                         10.0,   0.0,    10.0,  0.0,  0.0 };
-        Mat affine(3, 5, CV_8U, img);
-        Mat orientation(3, 5, CV_32F, ori);
-        Mat magnitude(3, 5, CV_32F, mag);
-        Contour contour(affine, orientation, magnitude);
-        Mat chains = contour.draw_chains();
-
-        Mat scale(chains.rows * 30, chains.cols * 30, CV_8UC3);
-        for(unsigned int i = 0;i < scale.rows;i++) {
-            for(unsigned int j = 0;j < scale.cols;j++) {
-                scale.at<Vec3b>(i,j) = chains.at<Vec3b>(i/30, j/30);
-            }
-        }
-
-        imshow("Affine", affine);
-        imshow("orientation", orientation);
-        imshow("Magnitude", magnitude);
-        imshow("Chains", scale);
-        waitKey(0);
-
-    }else {
-        // load the original picture in cv mat
-        Mat image;
-//    image = imread("../data/Lenna.png", CV_LOAD_IMAGE_COLOR);
-        image = imread("../data/image_simple_test.png", CV_LOAD_IMAGE_COLOR);
-        if (!image.data) {
-            std::cout << "Error loading picture" << std::endl;
-            return -1;
-        }
-        imshow("Source", image);
-
-        computeContours(image, 3, 50, 25, 3, 3, true);
-//    computeContours(image, 3, 100, 75, 3, 3, true);
-
-
-        waitKey(0);
-    }
+    // tests ANAIS, commenter précédemment
+//    uchar img[] =  {  0,     0,   0,  0,  0,
+//                      0,   255, 255,  0, 255,
+//                      255,   0,   0,  0,  0 };
+//    float ori[] =  {0.0,   0.0,  0.0,  0.0,  0.0,
+//                    0.0,   0.0,  0.0,  0.0,  0.0,
+//                    0.0,   0.0,  0.0,  0.0,  0.0 };
+//    float mag[] = {  0.0,   0.0,    10.0,  0.0,  0.0,
+//                     10.0,  10.0,   10.0,  10.0,  10.0,
+//                     10.0,   0.0,    10.0,  0.0,  0.0 };
+//    Mat affine(3, 5, CV_8U, img);
+//    Mat orientation(3, 5, CV_32F, ori);
+//    Mat magnitude(3, 5, CV_32F, mag);
+//    Contour contour(affine, orientation, magnitude);
+//    Mat chains = contour.draw_chains();
+//
+//    Mat scale(chains.rows * 30, chains.cols * 30, CV_8UC3);
+//    for(unsigned int i = 0;i < scale.rows;i++) {
+//        for(unsigned int j = 0;j < scale.cols;j++) {
+//            scale.at<Vec3b>(i,j) = chains.at<Vec3b>(i/30, j/30);
+//        }
+//    }
+//
+//    imshow("Affine", affine);
+//    imshow("orientation", orientation);
+//    imshow("Magnitude", magnitude);
+//    imshow("Chains", scale);
+//    waitKey(0);
 
 
     return EXIT_SUCCESS;
