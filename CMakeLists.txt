@@ -2,8 +2,9 @@ cmake_minimum_required(VERSION 3.6)
 project(PictureAnalysis)
 
 set(CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-set(SOURCE_FILES main.cpp filter.cpp gradient.cpp threshold.cpp graphe.cpp)
+set(SOURCE_FILES main.cpp filter.cpp gradient.cpp threshold.cpp contour.cpp)
 add_executable(PictureAnalysis ${SOURCE_FILES})
 
 # include opencv
