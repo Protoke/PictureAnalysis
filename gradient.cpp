@@ -166,26 +166,20 @@ void refineContour(const Mat& magnitude, const Mat& orientation, const Mat& cont
             Point2f pPosCur = Vec2f(i, j) + dir * posCur;
             Point2f pNegCur = Vec2f(i, j) + dir * negCur;
 
-//            if(result.at<uchar>(i,j) != 0)
-//                std::cout << orientation.at<float>(i,j) << " " << theta << " " << dir << " POINT (" << i << ";" << j << ") : " << magnitude.at<float>(i, j) << std::endl;
-
             while(result.at<uchar>(i,j) != 0 &&
                     (
                             (pPosCur.x <= i+range && pPosCur.y <= j+range && pPosCur.x >= i-range && pPosCur.y >= j-range) ||
                             (pNegCur.x <= i+range && pNegCur.y <= j+range && pNegCur.x >= i-range && pNegCur.y >= j-range))
                     )
             {
-//                std::cout << pPosCur << " " << pNegCur << std::endl;
 
                 if(pPosCur.x >= 0 && pPosCur.x < result.rows && pPosCur.y >= 0 && pPosCur.y < result.cols)
                     if(magnitude.at<float>(round(pPosCur.x), round(pPosCur.y)) > magnitude.at<float>(i, j)) {
                         result.at<uchar>(i, j) = 0;
-//                        std::cout << "Set 0" << std::endl;
                     }
                 if(pNegCur.x >= 0 && pNegCur.x < result.rows && pNegCur.y >= 0 && pNegCur.y < result.cols)
                     if(magnitude.at<float>(round(pNegCur.x), round(pNegCur.y)) >= magnitude.at<float>(i, j)){
                         result.at<uchar>(i, j) = 0;
-//                        std::cout << "Set 0" << std::endl;
                     }
 
                 posCur += 0.5; negCur -= 0.5;
@@ -197,7 +191,7 @@ void refineContour(const Mat& magnitude, const Mat& orientation, const Mat& cont
 }
 
 Mat Gradient::southGradient(int size, type t) {
-    // size must be even
+    // size must be odd
     assert(size%2 == 1);
 
     Mat_<int> mat;
@@ -272,7 +266,7 @@ Mat Gradient::eastGradient(int size, type t) {
 
 
 Mat Gradient::northGradient(int size, type t) {
-    // size must be even
+    // size must be odd
     assert(size%2 == 1);
 
     if(t == KIRSCH) {
@@ -295,7 +289,7 @@ Mat Gradient::northGradient(int size, type t) {
 }
 
 Mat Gradient::westGradient(int size, type t) {
-    // size must be even
+    // size must be odd
     assert(size%2 == 1);
 
     if(t == KIRSCH) {
@@ -316,7 +310,7 @@ Mat Gradient::westGradient(int size, type t) {
 }
 
 Mat Gradient::southEastGradient(int size, type t) {
-    // size must be even
+    // size must be odd
     assert(size%2 == 1);
 
     Mat mat = Mat::zeros(size, size, CV_32S);
@@ -368,7 +362,7 @@ Mat Gradient::southEastGradient(int size, type t) {
 }
 
 Mat Gradient::southWestGradient(int size, type t) {
-    // size must be even
+    // size must be odd
     assert(size%2 == 1);
 
     Mat mat = Mat::zeros(size, size, CV_32S);
@@ -419,7 +413,7 @@ Mat Gradient::southWestGradient(int size, type t) {
 
 
 Mat Gradient::northEastGradient(int size, type t) {
-    // size must be even
+    // size must be odd
     assert(size%2 == 1);
 
     if(t == KIRSCH) {
@@ -440,7 +434,7 @@ Mat Gradient::northEastGradient(int size, type t) {
 }
 
 Mat Gradient::northWestGradient(int size, type t) {
-    // size must be even
+    // size must be odd
     assert(size%2 == 1);
 
     Mat mat = Mat::zeros(size, size, CV_32S);
@@ -492,7 +486,7 @@ Mat Gradient::northWestGradient(int size, type t) {
 }
 
 std::array<Mat, 8> Gradient::boussoleGradient(int size, type t) {
-    // size must be even
+    // size must be odd
     assert(size%2 == 1);
 
     std::array<Mat, 8> gradients;
