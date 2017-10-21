@@ -29,7 +29,7 @@ void computeContours(const Mat& image, Mat& result,
     if(showIntermediate) {
         imshow("Magnitude", mat2gray(gradient._magnitude));
         imshow("Orientation", mat2gray(gradient._orientation));
-        imshow("Orientation Map", gradient._orientation_map);
+        //imshow("Orientation Map", gradient._orientation_map);
     }
 
     Mat seuil = hysteresisThreshold(gradient._magnitude, thresholdHigh, thresoldLow, thresholdSize);
