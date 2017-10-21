@@ -6,11 +6,7 @@
 #include <functional>
 #include <vector>
 
-float DISTANCE_SEARCH_CONTOUR = 7.0; // TODO ajuster
-
 Contour::Contour(const Mat& affine, Mat& orientation, Mat& magnitude, Mat& thresh, unsigned int distance_max) {
-    // init de l'image finale avec les contours fermes
-    //_closedContours = Mat::zeros(affine.rows, affine.cols, CV_8U);
 
     // copie de l'image affinee
     _mat = Mat::zeros(affine.rows, affine.cols, CV_8U);
@@ -44,7 +40,7 @@ Contour::Contour(const Mat& affine, Mat& orientation, Mat& magnitude, Mat& thres
 
     //2eme passe
     _mat = _closedContours + affine;
-    //_closedContours = Mat::zeros(affine.rows, affine.cols, CV_8U);
+
     chaining();
     extreme_chains = std::vector<Point2i> ();
     for(std::list<Point2i> l : _chains) {
@@ -56,7 +52,7 @@ Contour::Contour(const Mat& affine, Mat& orientation, Mat& magnitude, Mat& thres
 
     closeContours(extreme_chains, distance_max);
 
-    imshow("Final", _closedContours + _mat);
+    _closedContours = _closedContours + _mat;
 
 }
 
@@ -83,10 +79,9 @@ bool Contour::isStart(int y, int x) {
         for(unsigned int i = std::max(0, y-1);i <= min(_mat.rows-1, y+1);i++) {
             for(unsigned int j = std::max(0, x-1);j <= min(_mat.cols-1, x+1);j++) {
                 // si ce n'est pas le point central
-                // si le point n'a pas ete deja traite
+                // si le point appartient au contour de l'image affinee
                 // s'il y a plus qu'un voisin contour, ce n'est pas un debut de chaine
                 if( !(i==y && j==x) &&
-                    //!isDone(Point2i(j,i)) &&
                     _mat.at<uchar>(i,j) > 0 ) {
                     cpt++;
                     if(cpt > 1)
@@ -120,17 +115,11 @@ std::list<Point2i> Contour::follow(int y, int x) {
             while(!next && j <= min(_mat.cols-1, currentX+1)) {
 
                 // si ce n'est pas le point courant qui est examine
+                // si le point appartient au contour de l'image affinee
                 // si le point n'a pas encore ete traite
-                // si | ori(a) - ori(b) | < PI/2 alors b est le point suivant du contour
-                /*float angleMax = std::max(_orientation->at<float>(currentY,currentX), _orientation->at<float>(i,j));
-                float angleMin = std::min(_orientation->at<float>(currentY,currentX), _orientation->at<float>(i,j));
-                float angle = angleMax - angleMin;
-                angle = abs(fmod(angle + 180.0, 360.0) - 180.0);*/
                 if( !(i == currentY && j == currentX) &&
                     _mat.at<uchar>(i,j) > 0 &&
-                    !isDone(Point2i(j,i)) ) {//   &&
-                    //angle <= M_PI/2.0 ) {
-                    //( fmod(_orientation->at<float>(currentY,currentX) - _orientation->at<float>(i,j) , 2.0*M_PI) )  <= M_PI/2.0 )  {
+                    !isDone(Point2i(j,i)) ) {
 
                     // on ajoute le point dans la liste
                     list.emplace_back( Point2i(j,i) );
@@ -164,7 +153,7 @@ bool Contour::isDone(Point2i point) {
 
 Mat Contour::draw_chains() {
     Mat mat = Mat::zeros(_mat.rows, _mat.cols, CV_8UC3);
-    //Mat mat = Mat::zeros(_mat.rows, _mat.cols, CV_8U);
+
     unsigned int i = 0;
     for(std::list<Point2i> l : _chains) {
         unsigned int colorR = ((sin(i) + 1.0) / 2.0)*255;
@@ -173,8 +162,6 @@ Mat Contour::draw_chains() {
         for(Point2i p : l) {
             mat.at<Vec3b>(p.y, p.x) = Vec3b(colorR, colorG, colorB);
         }
-        //Point2i p = l.front();
-        //mat.at<Vec3b>(p.y, p.x) = Vec3b(colorR, colorG, colorB);
         i++;
     }
     return mat;
@@ -187,13 +174,6 @@ bool Contour::contains(std::vector<Point2i> extremes, Point2i point) {
     }
     return false;
 }
-
-void Contour::deleteContourNodes(ContourNode* n) {
-    for(ContourNode* child : n->childrens)
-        deleteContourNodes(child);
-    delete(n);
-}
-
 
 void Contour::closeContours(std::vector<Point2i> extreme_chains, unsigned int distance_max) {
 
@@ -259,4 +239,8 @@ bool Contour::isContour(Point2i p) {
     if(_mat.at<uchar>(p.y, p.x) != 0)
         return true;
     return false;
+}
+
+Mat Contour::getFinalContours() {
+    return _closedContours;
 }

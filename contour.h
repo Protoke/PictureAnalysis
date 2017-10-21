@@ -13,14 +13,6 @@
 
 using namespace cv;
 
-struct ContourNode {
-    Point2i p;
-    ContourNode* src;
-    std::set<ContourNode*> childrens;
-    float weight;
-    float heuristic;
-} ;
-
 class Contour {
 
 public:
@@ -34,9 +26,9 @@ public:
     bool isDone(Point2i point);
     Mat draw_chains();
     bool contains(std::vector<Point2i> extremes, Point2i point);
-    void deleteContourNodes(ContourNode* n);
     void closeContours(std::vector<Point2i> extreme_chains, unsigned int distance_max);
     bool isContour(Point2i p);
+    Mat getFinalContours();
 
 private:
 

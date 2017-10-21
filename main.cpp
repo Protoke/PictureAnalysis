@@ -19,6 +19,7 @@ void computeContours(const Mat& image, Mat& result,
                      Gradient::type filterType, int gradientType,
                      float thresholdHigh, float thresoldLow, int thresholdSize,
                      int refiningSize,
+                     unsigned int distanceMax,
                      bool showIntermediate){
 
     // calcul gradients, magnitude, orientation de l'image
@@ -40,11 +41,13 @@ void computeContours(const Mat& image, Mat& result,
     if(showIntermediate)
         imshow("Affinage", affine);
 
-    Contour contour(affine, gradient._orientation, gradient._magnitude, seuil, 10);
+    Contour contour(affine, gradient._orientation, gradient._magnitude, seuil, distanceMax);
     Mat chains = contour.draw_chains();
-    imshow("Chains", chains);
+    imshow("Chaînes", chains);
 
-    result = affine;
+    Mat closedContours = contour.getFinalContours();
+
+    result = closedContours;
 }
 
 int main() {
@@ -111,6 +114,10 @@ int main() {
     int refiningSize;
     cin >> refiningSize;
 
+    cout << "Entrez la distance maximale pour refermer les contours : ";
+    unsigned int distanceMax;
+    cin >> distanceMax;
+
     cout << "Voulez-vous afficher les images intermédiaires? (0 = non, 1 = oui) : ";
     int showIntermediate;
     cin >> showIntermediate;
@@ -119,7 +126,7 @@ int main() {
 
     Mat result;
     computeContours(image, result, filterType, gradientFlags,
-                    thresholdMax, thresholdMin, thresholdSize, refiningSize, showIntermediate);
+                    thresholdMax, thresholdMin, thresholdSize, refiningSize, distanceMax, showIntermediate);
 
     imshow("Resultat", result);
     waitKey(0);
